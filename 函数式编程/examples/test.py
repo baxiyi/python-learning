@@ -70,17 +70,17 @@
 # res = fn()
 # print(res) # 10 
 
-def doubleEach(*args):
-  fs = []
-  for i in args:
-    def f():
-      return i*2
-    fs.append(f)
-  return fs
-fs = doubleEach(1, 2, 3, 4)
-print(fs)
-for f in fs:
-  print(f())
+# def doubleEach(*args):
+#   fs = []
+#   for i in args:
+#     def f():
+#       return i*2
+#     fs.append(f)
+#   return fs
+# fs = doubleEach(1, 2, 3, 4)
+# print(fs)
+# for f in fs:
+#   print(f())
 # 8
 # 8
 # 8
@@ -90,3 +90,44 @@ for f in fs:
 # res = list(map(lambda x: x*x, [1, 2, 3, 4]))
 # print(res)
 # # [1, 4, 9, 16]
+
+# 装饰器
+# 实现一个log函数作为装饰器：实现函数运行时打印出函数的名字
+# def log(func):
+#   def wrapper(*args, **kw):
+#     print('call', func.__name__)
+#     return func(*args, **kw)
+#   return wrapper
+# @log
+# def now():
+#   print('2019-10-15')
+# now()
+# # call now
+# # 2019-10-15
+# print(now.__name__) # wrapper
+# 实现不改变函数名的decorator:使用内置的functools.wraps
+# import functools
+# def log(func):
+#   @functools.wraps(func)
+#   def wrapper(*args, **kw):
+#     print('call', func.__name__)
+#     return func(*args, **kw)
+#   return wrapper
+# @log
+# def now():
+#   print('2019-10-15')
+# now()
+# print(now.__name__)
+# call now
+# 2019-10-15
+# now
+# 偏函数
+import functools
+# 将max函数传入10再返回一个函数：参数10传入*args中
+min10Max = functools.partial(max, 10)
+print(min10Max(5, 6, 7)) # 10
+# 将int函数固定成按二进制转化:base传入**kw中
+int2 = functools.partial(int, base=2)
+print(int2('1001')) # 9
+
+

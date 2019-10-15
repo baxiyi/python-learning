@@ -167,3 +167,62 @@ print(res)
 # [1, 4, 9, 16]
 ```
 
+## 4. 装饰器
+
+当我们要增强一个函数的功能但又不希望改变原有函数的定义，而是在调用它的时候动态的添加某个功能，就可以使用装饰器（decorator）
+
+```python
+def log(func):
+  def wrapper(*args, **kw):
+    print('call', func.__name__)
+    return func(*args, **kw)
+  return wrapper
+@log
+def now():
+  print('2019-10-15')
+now()
+# call now
+# 2019-10-15
+```
+
+此处的`@log`相当于调用了`now = log(now)`
+
+但是这里会出现一个问题，如果此时打印出`now.__name__`，会发现是`wrapper`
+
+```python
+import functools
+def log(func):
+  @functools.wraps(func)
+  def wrapper(*args, **kw):
+    print('call', func.__name__)
+    return func(*args, **kw)
+  return wrapper
+@log
+def now():
+  print('2019-10-15')
+now()
+print(now.__name__)
+# call now
+# 2019-10-15
+# now
+```
+
+
+
+## 5. 偏函数
+
+偏函数就是将一个函数的某些参数设置一个默认值，然后返回一个新的函数
+
+用法：
+
+`functools.partial(func, *args, **kw)` 前面讲过所有函数的参数都可以写成`(*args, **kw)`的形式，在创建偏函数的时候也是如此。
+
+```python
+import functools
+# 将max函数传入10再返回一个函数：参数10传入*args中
+min10Max = functools.partial(max, 10)
+print(min10Max(5, 6, 7)) # 10
+# 将int函数固定成按二进制转化:base传入**kw中
+int2 = functools.partial(int, base=2)
+print(int2('1001')) # 9
+```
