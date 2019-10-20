@@ -75,9 +75,27 @@ main()
 
 ### 调用栈
 
-![屏幕快照 2019-10-20 下午9.00.06](/Users/mazhiwei/Desktop/屏幕快照 2019-10-20 下午9.00.06.png)
+```python
+def foo(s):
+    return 10 / int(s)
+def bar(s):
+    return foo(s) * 2
+def main():
+    bar('0')
+main()
+# Traceback (most recent call last):
+#   File "test.py", line 26, in <module>
+#     main()
+#   File "test.py", line 25, in main
+#     bar('0')
+#   File "test.py", line 23, in bar
+#     return foo(s)*2
+#   File "test.py", line 21, in foo
+#     return 10 / int(s)
+# ZeroDivisionError: division by zero
+```
 
-如图，如果不进行任何的错误捕获，错误会一直根据调用栈向上进行捕获，最后被python解释器捕获，打印出调用栈的信息
+如果不进行任何的错误捕获，错误会一直根据调用栈向上进行捕获，最后被python解释器捕获，打印出调用栈的信息
 
 ### 记录错误
 
