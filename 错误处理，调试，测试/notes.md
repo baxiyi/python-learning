@@ -319,5 +319,213 @@ ZeroDivisionError: division by zero
 
 使用IDE自带的调试器，如vscode，pycharm
 
+## 3. 单元测试
 
+单元测试是对一个模块进行测试，对一个函数或类编写一个单元测试文件，将测试用例写在里面。
+
+python中提供了unittest类用来进行单元测试，比如我们要编写一个Dict类，实现通过d.a这样的方式访问属性，当不存在的时候抛出AttributeError。
+
+mydict.py
+
+```python
+class Dict(dict):
+  def __init__(self, **kw):
+    super().__init__(**kw)
+  def __getattr__(self, key):
+    try:
+      return self[key]
+    except KeyError:
+      raise AttributeError('Dict object has no attribute %s' % key)
+  def __setattr__(self, key, value):
+    self[key] = value
+```
+
+mydict_test.py
+
+```python
+import unittest
+from mydict import Dict
+
+class TestDict(unittest.TestCase):
+  def test_init(self):
+    d = Dict(a=1, b='test')
+    self.assertEqual(d.a, 1)
+    self.assertEqual(d.b, 'test')
+    self.assertTrue(isinstance(d, dict))
+  def test_key(self):
+    d = Dict()
+    d['key'] = 'value'
+    self.assertEqual(d.key, 'value')
+  def test_attr(self):
+    d = Dict()
+    d.key = 'value'
+    self.assertTrue('key' in d)
+    self.assertEqual(d['key'], 'value')
+  def test_keyError(self):
+    d = Dict()
+    with self.assertRaises(KeyError):
+      value = d['empty']
+  def test_attrError(self):
+    d = Dict()
+    with self.assertRaises(AttributeError):
+      value = td.empty
+```
+
+在test文件中以test开头的函数运行测试文件时会自动执行，常用到的方法有assertEqual，assertTrue，assertRaises等。
+
+assertEqual设置两个参数，如果相等，则正常向下运行，不相等则会报对应的错误；assertTrue只接受一个bool参数；assertRaises配合with语句用来检测会不会抛出想要的错误。
+
+要运行test文件，在终端中使用`python -m unittest mydict_test.py`
+
+如果没有assert错误，会成功通过：
+
+```
+mazhiweideMacBook-Pro:单元测试 mazhiwei$ python -m unittest mydict_test.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+```
+
+如果有会报错：
+
+```
+mazhiweideMacBook-Pro:单元测试 mazhiwei$ python -m unittest mydict_test.py
+..F..
+======================================================================
+FAIL: test_init (mydict_test.TestDict)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/mazhiwei/Desktop/python-learning/错误处理，调试，测试/examples/单元测试/mydict_test.py", line 7, in test_init
+    self.assertEqual(d.a, 2)
+AssertionError: 1 != 2
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+FAILED (failures=1)
+```
+
+还可以在test类中定义setUp和tearDown函数，会分别在每个测试方法调用前后调用，如果想要在运行测试函数前后做什么工作（比如连接/断开数据库），可以放在这里。
+
+```python
+def setUp(self):
+    print('setup...')
+  def tearDown(self):
+    print('teardown...')
+```
+
+终端：
+
+```
+mazhiweideMacBook-Pro:单元测试 mazhiwei$ python -m unittest mydict_test.py
+setup...
+teardown...
+.setup...
+teardown...
+.setup...
+teardown...
+.setup...
+teardown...
+.setup...
+teardown...
+.
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+```
+
+## 4. 文档测试
+
+把一些交互环境下的测试代码直接放在源代码的注释当中，使用python的doctest模块可以自动提取其中的代码，并进行测试。
+
+如我们刚才写的Dict改为文档测试的方法：
+
+```python
+class Dict(dict):
+  '''
+  Simple dict but also support access as x.y style.
+
+  >>> d1 = Dict()
+  >>> d1['x'] = 100
+  >>> d1.x
+  100
+  >>> d1.y = 200
+  >>> d1['y']
+  200
+  >>> d2 = Dict(a=1, b=2, c='3')
+  >>> d2.c
+  '3'
+  >>> d2['empty']
+  Traceback (most recent call last):
+      ...
+  KeyError: 'empty'
+  >>> d2.empty
+  Traceback (most recent call last):
+      ...
+  AttributeError: Dict object has no attribute empty
+  '''
+  def __init__(self, **kw):
+    super().__init__(**kw)
+  def __getattr__(self, key):
+    try:
+      return self[key]
+    except KeyError:
+      raise AttributeError('Dict object has no attribute %s' % key)
+  def __setattr__(self, key, value):
+    self[key] = value
+
+if __name__ == '__main__':
+  import doctest
+  doctest.testmod()
+```
+
+可以用...代替中间的一些输出；最后需引入doctest模块，并调用testmod方法
+
+终端：
+
+```
+mazhiweideMacBook-Pro:文档测试 mazhiwei$ python mydict.py
+mazhiweideMacBook-Pro:文档测试 mazhiwei$
+```
+
+如果没有错误，什么都不会显示。
+
+如果出错，比如我们把注释中d1.x改为50
+
+```
+mazhiweideMacBook-Pro:文档测试 mazhiwei$ python mydict.py
+**********************************************************************
+File "mydict.py", line 19, in __main__.Dict
+Failed example:
+    d2.empty
+Expected:
+    Traceback (most recent call last):
+        ...
+    AttributeError: 'Dict' object has no attribute 'empty'
+Got:
+    Traceback (most recent call last):
+      File "mydict.py", line 28, in __getattr__
+        return self[key]
+    KeyError: 'empty'
+    <BLANKLINE>
+    During handling of the above exception, another exception occurred:
+    <BLANKLINE>
+    Traceback (most recent call last):
+      File "/usr/local/Cellar/python/3.7.4_1/Frameworks/Python.framework/Versions/3.7/lib/python3.7/doctest.py", line 1329, in __run
+        compileflags, 1), test.globs)
+      File "<doctest __main__.Dict[8]>", line 1, in <module>
+        d2.empty
+      File "mydict.py", line 30, in __getattr__
+        raise AttributeError('Dict object has no attribute %s' % key)
+    AttributeError: Dict object has no attribute empty
+**********************************************************************
+1 items had failures:
+   1 of   9 in __main__.Dict
+***Test Failed*** 1 failures.
+```
+
+会报错，并分别给出expected和got的内容
 
