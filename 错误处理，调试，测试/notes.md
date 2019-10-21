@@ -216,7 +216,7 @@ logging.info('n = %d' % n)
 print(10 / n)
 # INFO:root:n = 0
 # Traceback (most recent call last):
-#   File "/Users/mazhiwei/Desktop/python-learning/错误处理，调试，测试/examples/test.py", line 117, in <module>
+#   File "test.py", line 117, in <module>
 #     print(10 / n)
 # ZeroDivisionError: division by zero
 ```
@@ -397,7 +397,7 @@ mazhiweideMacBook-Pro:单元测试 mazhiwei$ python -m unittest mydict_test.py
 FAIL: test_init (mydict_test.TestDict)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/mazhiwei/Desktop/python-learning/错误处理，调试，测试/examples/单元测试/mydict_test.py", line 7, in test_init
+  File "mydict_test.py", line 7, in test_init
     self.assertEqual(d.a, 2)
 AssertionError: 1 != 2
 
