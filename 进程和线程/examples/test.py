@@ -68,36 +68,122 @@
 # Task 2 runs 2.24 seconds
 # All subprocess done
 
-# 进程间通信
+# # 进程间通信
 
-from multiprocessing import Process, Queue
-import os, time, random
-def write(q):
-  print('Process to write %s' % os.getpid())
-  for value in ['A', 'B', 'C']:
-    print('Put %s to queue...' % value)
-    q.put(value)
-    time.sleep(random.random())
+# from multiprocessing import Process, Queue
+# import os, time, random
+# def write(q):
+#   print('Process to write %s' % os.getpid())
+#   for value in ['A', 'B', 'C']:
+#     print('Put %s to queue...' % value)
+#     q.put(value)
+#     time.sleep(random.random())
 
-def read(q):
-  print('Process to read %s ' % os.getpid())
-  while True:
-    value = q.get()
-    print('Get %s from queue...' % value)
-if __name__ == '__main__':
-  q = Queue()
-  pw = Process(target=write, args=(q,))
-  pr = Process(target=read, args=(q,))
-  pw.start()
-  pr.start()
-  pw.join()
-  pr.terminate()
+# def read(q):
+#   print('Process to read %s ' % os.getpid())
+#   while True:
+#     value = q.get()
+#     print('Get %s from queue...' % value)
+# if __name__ == '__main__':
+#   q = Queue()
+#   pw = Process(target=write, args=(q,))
+#   pr = Process(target=read, args=(q,))
+#   pw.start()
+#   pr.start()
+#   pw.join()
+#   pr.terminate()
 
-# Process to write 6126
-# Put A to queue...
-# Process to read 6127
-# Get A from queue...
-# Put B to queue...
-# Get B from queue...
-# Put C to queue...
-# Get C from queue...
+# # Process to write 6126
+# # Put A to queue...
+# # Process to read 6127
+# # Get A from queue...
+# # Put B to queue...
+# # Get B from queue...
+# # Put C to queue...
+# # Get C from queue...
+
+
+# 多线程
+# import time, threading
+# from threading import Thread
+# def loop():
+#   tname = threading.current_thread().name
+#   print('thread %s is running...' % tname)
+#   n = 0
+#   while(n < 3):
+#     n = n + 1
+#     print('thread %s >>> %s' % (tname, n))
+#     time.sleep(1)
+#   print('thread %s end' % tname)
+# tname = threading.current_thread().name
+# print('thread %s is running...' % tname)
+# t = Thread(target=loop, name='LoopThread')
+# t.start()
+# t.join()
+# print('thread %s end' % tname)
+
+# # thread MainThread is running...
+# # thread LoopThread is running...
+# # thread LoopThread >>> 1
+# # thread LoopThread >>> 2
+# # thread LoopThread >>> 3
+# # thread LoopThread end
+# # thread MainThread end
+
+# Lock
+# import time, threading
+# balance = 0
+# lock = threading.Lock()
+# def change(n):
+#   global balance
+#   balance = balance + n
+#   balance = balance - n
+
+# def run_thread(n):
+#   for i in range(100000):
+#     lock.acquire()
+#     change(n)
+#     lock.release()
+
+# t1 = threading.Thread(target=run_thread, args=(5,))
+# t2 = threading.Thread(target=run_thread, args=(8,))
+# t1.start()
+# t2.start()
+# t1.join()
+# t2.join()
+# print(balance)
+
+# # 0
+
+
+
+# 多线程无法利用多核，而多进程可以
+# import threading, time, multiprocessing
+
+# def loop():
+#   x = 0
+#   while True:
+#     x = x + 1
+# for i in range(multiprocessing.cpu_count()):
+#   p = multiprocessing.Process(target=loop)
+#   p.start()
+
+# ThreadLocal
+import threading
+local = threading.local()
+def student_run():
+  st = local.student
+  print('student name %s in thread %s' % (st, threading.current_thread().name))
+def thread_run(name):
+  local.student = name
+  student_run()
+t1 = threading.Thread(target=thread_run, args=('Alice',), name='A')
+t2 = threading.Thread(target=thread_run, args=('Bob',), name='B')
+t1.start()
+t2.start()
+t1.join()
+t2.join()
+
+# student name Alice in thread A
+# student name Bob in thread B
+

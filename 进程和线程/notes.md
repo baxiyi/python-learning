@@ -142,3 +142,146 @@ if __name__ == '__main__':
 
 Queue模块详解见：https://linuxeye.com/334.html（在q.put()的解释中有一处错误：如果队列当前为满（不是空）且block为1，put()方法就使调用线程暂停,直到空出一个数据单元。如果block为0，put方法将引发Full异常。）
 
+## 2.多线程
+
+多线程是通过python的threading模块实现的，可使用threading的Thread类创建一个线程（指定target，也可以指定name，如果不指定，就默认Thread-1, Thread-2....），通过start开始线程，join等待线程结束。主线程的name为MainThread
+
+```python
+import time, threading
+from threading import Thread
+def loop():
+  # 通过current_thread()获取当前线程
+  tname = threading.current_thread().name
+  print('thread %s is running...' % tname)
+  n = 0
+  while(n < 3):
+    n = n + 1
+    print('thread %s >>> %s' % (tname, n))
+    time.sleep(1)
+  print('thread %s end' % tname)
+tname = threading.current_thread().name
+print('thread %s is running...' % tname)
+t = Thread(target=loop, name='LoopThread')
+t.start()
+t.join()
+print('thread %s end' % tname)
+
+# 运行结果：
+# thread MainThread is running...
+# thread LoopThread is running...
+# thread LoopThread >>> 1
+# thread LoopThread >>> 2
+# thread LoopThread >>> 3
+# thread LoopThread end
+# thread MainThread end
+```
+
+### Lock
+
+当创建一个进程时，父进程的变量也会给子进程一份拷贝，各个进程之间的变量是互不影响的。而一个多线程则共享同一进程中的变量，这样就可能发生多个进程同时修改一个变量，导致变量出错。这是因为线程会在cpu调度下交替执行，这样可能会导致每个线程中的一个语句还没有执行完，就到了另一个线程执行，导致变量错乱。
+
+解决的办法是使用Threading.Lock()，在线程执行中对修改共享变量的语句上锁。
+
+```python
+import time, threading
+balance = 0
+lock = threading.Lock()
+def change(n):
+  global balance
+  balance = balance + n
+  balance = balance - n
+
+def run_thread(n):
+  for i in range(100000):
+    # 通过acquire()获取
+    lock.acquire()
+    change(n)
+    # 改完之后通过release()释放
+    lock.release()
+
+t1 = threading.Thread(target=run_thread, args=(5,))
+t2 = threading.Thread(target=run_thread, args=(8,))
+t1.start()
+t2.start()
+t1.join()
+t2.join()
+print(balance)
+
+# 0
+```
+
+### 多核
+
+在python的多线程实际上是自带一个GIL锁的，每个线程在运行时得到这个锁，执行100条字节码会释放这个锁，交给别的线程去用，所以python的多线程本质上是在cpu上交替执行的，无法做到多核并行。
+
+要利用多核，只能使用多进程。
+
+代码如下：
+
+```python
+import threading, time, multiprocessing
+
+def loop():
+  x = 0
+  while True:
+    x = x + 1
+# cpu_count()获取cpu核数
+for i in range(multiprocessing.cpu_count()):
+  p = multiprocessing.Process(target=loop)
+  p.start()
+```
+
+每个进程都是死循环，执行上面的代码，查看cpu使用率，可以一段时间发现cpu每个核都被占满。
+
+## 3. ThreadLocal
+
+我们知道，各个线程可以共享一个进程中的变量，但也可以拥有自己的局部变量，并且这种局部变量在一个线程中独立，不用像共享变量那样修改时需要加锁。
+
+但局部变量的缺点是，当线程中多个函数都需要用到这个变量的时候，每次都要在调用时将局部变量作为参数传进去。
+
+像这样：
+
+```python
+def process_student(name):
+    std = Student(name)
+    # std是局部变量，但是每个函数都要用它，因此必须传进去：
+    do_task_1(std)
+    do_task_2(std)
+
+def do_task_1(std):
+    do_subtask_1(std)
+    do_subtask_2(std)
+
+def do_task_2(std):
+    do_subtask_2(std)
+    do_subtask_2(std)
+```
+
+如果有一种方法，可以将每个线程的局部变量都存在一个全局变量中，然后根据当前的线程ID从中获取相应的局部变量（类似一个dict），就不用在调用每个函数时传递局部变量了。
+
+python中的ThreadLocal实现了这种功能，用法如下：
+
+```python
+import threading
+# 获取ThreadLocal
+local = threading.local()
+def student_run():
+  # 从ThreadLocal中获取线程对应的局部变量
+  st = local.student
+  print('student name %s in thread %s' % (st, threading.current_thread().name))
+def thread_run(name):
+  # 像ThreadLocal中添加线程对应的局部变量
+  local.student = name
+  student_run()
+t1 = threading.Thread(target=thread_run, args=('Alice',), name='A')
+t2 = threading.Thread(target=thread_run, args=('Bob',), name='B')
+t1.start()
+t2.start()
+t1.join()
+t2.join()
+
+# 运行结果:
+# student name Alice in thread A
+# student name Bob in thread B
+```
+
