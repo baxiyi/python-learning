@@ -116,16 +116,16 @@ import numpy as np
 # #  [5 6]
 # #  [7 8]]
 
-# 创建数组的其它方式
-a = np.arange(12).reshape(3, 4)
-print(a)
-b = np.arange(0, 12, 3) # start,end,step
-print(b)
-indices = [0, 2]
-print(a[indices])
-# 对角线都是1的方阵
-c = np.eye(2, 2)
-print(c)
-# num个均匀间隔的数字
-c = np.linspace(0, 10, num=4)
-print(c)
+# # 创建数组的其它方式
+# a = np.arange(12).reshape(3, 4)
+# print(a)
+# b = np.arange(0, 12, 3) # start,end,step
+# print(b)
+# indices = [0, 2]
+# print(a[indices])
+# # 对角线都是1的方阵
+# c = np.eye(2, 2)
+# print(c)
+# # num个均匀间隔的数字
+# c = np.linspace(0, 10, num=4)
+# print(c)
