@@ -129,3 +129,9 @@ import numpy as np
 # # num个均匀间隔的数字
 # c = np.linspace(0, 10, num=4)
 # print(c)
+
+# # reshape的作用将a从一维数组变成了二维数组
+# a = np.array([1, 2, 3, 4])
+# print(a)
+# b = a.reshape(-1, 1)
+# print(b)
