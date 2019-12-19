@@ -135,3 +135,8 @@ import numpy as np
 # print(a)
 # b = a.reshape(-1, 1)
 # print(b)
+
+# # where用法
+# a = np.array([[1, 2, -3], [4, -5, 6]])
+# indices = np.where(a < 0)
+# print(indices)
