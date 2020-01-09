@@ -66,3 +66,54 @@ import torch
 # z = x.detach()
 # print(z.requires_grad)
 
+# network
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 6, 3)
+        self.conv2 = nn.Conv2d(6, 16, 3)
+        self.fc1 = nn.Linear(16 * 6 * 6, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        # print(x.size())
+        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        # print(x.size())
+        batch_size = x.size()[0]
+        # print(x.size())
+        x = x.view(batch_size, -1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+    def train(self, x, y):
+        optimizer = optim.SGD(self.parameters(), lr=0.01)
+        for i in range(100):
+            optimizer.zero_grad()
+            output = self.forward(x)
+            lossfunc = nn.MSELoss()
+            loss = lossfunc(output, y)
+            print(loss)
+            loss.backward()
+            optimizer.step()
+
+
+net = Net()
+# print(net)
+
+# params = list(net.parameters())
+# print(len(params))
+# print(params[0].size())
+
+input = torch.randn(1, 1, 32, 32)
+# out = net(input)
+# print(out)
+
+target = torch.randn(1, 10)
+net.train(input, target)
